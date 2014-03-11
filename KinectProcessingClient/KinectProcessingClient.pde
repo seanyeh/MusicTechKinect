@@ -28,12 +28,6 @@ color[]       userClr = new color[]{ color(255,0,0),
   color(0,255,255)
 };
 
-
-
-
-
-
-
 OscP5 oscP5;
 /* a NetAddress contains the ip address and port number of a remote location in the network. */
 NetAddress myBroadcastLocation; 
@@ -150,23 +144,6 @@ void draw(){
       oscP5.send(msg, myBroadcastLocation);
     }
   }
-
-
-  // Send information
-
-  /* PVector jointPos1 = new PVector(); */
-  /* context.getJointPositionSkeleton(0,SimpleOpenNI.SKEL_HEAD,jointPos1); */
-  /*  */
-  /* int hpos = int(jointPos1.x); */
-  /* if (hpos != headPos){ */
-  /*   headPos = hpos; */
-    /* create a new OscMessage with an address pattern, in this case /test. */
-    /* OscMessage myOscMessage = new OscMessage("/head"); */
-    /* add a value (an integer) to the OscMessage */
-    /* myOscMessage.add(hpos); */
-    /* send the OscMessage to a remote location specified in myNetAddress */
-    /* oscP5.send(myOscMessage, myBroadcastLocation); */
-  /* } */
 } // END DRAW
 
 
@@ -283,46 +260,6 @@ void onVisibleUser(SimpleOpenNI curContext,int userId)
 }
 
 
-// -----------------------------------------------------------------
-// Keyboard events
-
-void keyPressed()
-{
-  switch(key)
-  {
-    case ' ':
-      context.setMirror(!context.mirror());
-      break;
-  }
-
-  switch(keyCode)
-  {
-    case LEFT:
-      rotY += 0.1f;
-      break;
-    case RIGHT:
-      // zoom out
-      rotY -= 0.1f;
-      break;
-    case UP:
-      if(keyEvent.isShiftDown())
-        zoomF += 0.01f;
-      else
-        rotX += 0.1f;
-      break;
-    case DOWN:
-      if(keyEvent.isShiftDown())
-      {
-        zoomF -= 0.01f;
-        if(zoomF < 0.01)
-          zoomF = 0.01;
-      }
-      else
-        rotX -= 0.1f;
-      break;
-  }
-}
-
 void getBodyDirection(int userId,PVector centerPoint,PVector dir)
 {
   PVector jointL = new PVector();
@@ -343,40 +280,4 @@ void getBodyDirection(int userId,PVector centerPoint,PVector dir)
 
   dir.set(up.cross(left));
   dir.normalize();
-}
-
-
-
-class JointTracker {
-  int pos, joint;
-  boolean isUpdated;
-  String name;
-
-  public JointTracker(int joint, String name){
-    this.joint = joint;
-    this.name = name;
-
-    isUpdated = false;
-    pos = 0;
-  }
-
-  public void update(SimpleOpenNI context){
-    PVector jointPos = new PVector();
-    context.getJointPositionSkeleton(0, this.joint, jointPos);
-
-    // hacky +800 now for removing negative values. change later
-    int newPos = int(jointPos.x) + 800;
-
-    if (pos == newPos){
-      this.isUpdated = false;
-    } else{
-      this.isUpdated = true;
-      this.pos = newPos;
-    }
-  }
-
-  public boolean isUpdated(){ return this.isUpdated; }
-
-  public int getPos(){ return this.pos; }
-  public String getName(){ return this.name; }
 }
