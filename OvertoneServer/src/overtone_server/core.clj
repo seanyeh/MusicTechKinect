@@ -2,23 +2,6 @@
   (:require [overtone.live :refer :all]
             ))
 
-;; TODO
-;;
-;; Synth options, effects
-;;  Audio processing: reverb, delay, pithc shifting, filter (comb), flanging,
-;;    synthesis (granular?)
-;;    Phase vocoder (stretching)
-;;
-
-
-;; TODO 2/24
-;; Sweep band-pass and delay filter with kinect
-
-
-;; TODO 3/10
-;; Resonators
-;; Time shrink/stretch
-;; Combine filters
 
 
 ;; (def note-offsets [0 2 3 7 8])
@@ -131,20 +114,3 @@
 ;; (demo 10 (free-verb (mda-piano 440) 0.7 1 0.2)) ; Reverb
 ;; (demo 5 (pluck fasdf 2 0.2 0.2 5)) ; pluck. similar to comb delay??
 ;;
-;; (definst grain [b 0] (let [
-;;                             trate (mouse-y:kr 1 30)
-;;                             dur (/ 2 trate)]
-;;                         (t-grains2:ar 1 (impulse:ar trate) b 1 (mouse-x:kr 0 (buf-dur:kr b)) dur 0 0.8 2)))
-;;
-;;
-;; (grain rach)
-
-;; (definst hello []
-;;   (let [vals (dibrown 0 15 1 INF)
-;;         trig (impulse:kr (mouse-x 1 40 1))
-;;         val (demand trig 0 vals)
-;;         poll (poll trig trig "dibrown val:")
-;;         freq (+ 340 (* 30 val))]
-;;     (* 0.1 (sin-osc freq)))
-;;   )
-;; (hello)
