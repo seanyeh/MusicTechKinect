@@ -1,13 +1,7 @@
-
 import SimpleOpenNI.*;
 import processing.video.*;
 
 import java.util.LinkedList;
-import java.util.Iterator;
-
-
-import oscP5.*;
-import netP5.*;
 
 SimpleOpenNI context;
 float        zoomF =0.5f;
@@ -20,25 +14,13 @@ PVector      bodyCenter = new PVector();
 PVector      bodyDir = new PVector();
 PVector      com = new PVector();                                   
 PVector      com2d = new PVector();                                   
-color[]       userClr = new color[]{ color(255,0,0),
-  color(0,255,0),
-  color(0,0,255),
-  color(255,255,0),
-  color(255,0,255),
-  color(0,255,255)
-};
-
-OscP5 oscP5;
-/* a NetAddress contains the ip address and port number of a remote location in the network. */
-NetAddress myBroadcastLocation; 
 
 
-
+OscServer oscServer = new OscServer();
 LinkedList<JointTracker> joints;
 
 
-void setup()
-{
+void setup(){
   size(1024,768,P3D);  // strange, get drawing error in the cameraFrustum if i use P3D, in opengl there is no problem
   context = new SimpleOpenNI(this);
   if(context.isInit() == false)
@@ -67,12 +49,6 @@ void setup()
       10,150000);
 
 
-  oscP5 = new OscP5(this,12000);
-
-  /* the address of the osc broadcast server */
-  myBroadcastLocation = new NetAddress("127.0.0.1",32000);
-
-
   // JointTracker
   joints = new LinkedList<JointTracker>();
   /* joints.add(new JointTracker(SimpleOpenNI.SKEL_HEAD, "head")); */
@@ -93,14 +69,11 @@ void draw(){
   /* image(context.rgbImage(), 0, 0, width, height); */
   /* tint(255,255); */
 
-
   // set the scene pos
   translate(width/2, height/2, 0);
   rotateX(rotX);
   rotateY(rotY);
   scale(zoomF);
-
-
 
   translate(0,0,-1000);  // set the rotation center of the scene 1000 infront of the camera
 
@@ -128,7 +101,6 @@ void draw(){
 
       fill(0,255,100);
       text(Integer.toString(userList[i]),com.x,com.y,com.z);
-
     }      
   }    
 
@@ -136,12 +108,7 @@ void draw(){
   for (JointTracker jt: joints){
     jt.update(context);
     if (jt.isUpdated()){
-      /* System.out.println(jt.getPos()); */
-      
-      // Send to server
-      OscMessage msg = new OscMessage(jt.getName());
-      msg.add(jt.getPos());
-      oscP5.send(msg, myBroadcastLocation);
+      oscServer.send(jt.getName(), jt.getPos());
     }
   }
 } // END DRAW
@@ -150,8 +117,7 @@ void draw(){
 
 
 // draw the skeleton with the selected joints
-void drawSkeleton(int userId)
-{
+void drawSkeleton(int userId){
   strokeWeight(3);
 
   // to get the 3d joint data
@@ -190,8 +156,7 @@ void drawSkeleton(int userId)
 
 }
 
-void drawLimb(int userId,int jointType1,int jointType2)
-{
+void drawLimb(int userId,int jointType1,int jointType2){
   PVector jointPos1 = new PVector();
   PVector jointPos2 = new PVector();
   float  confidence;
@@ -207,8 +172,7 @@ void drawLimb(int userId,int jointType1,int jointType2)
   /* drawJointOrientation(userId,jointType1,jointPos1,50); */
 }
 
-void drawJointOrientation(int userId,int jointType,PVector pos,float length)
-{
+void drawJointOrientation(int userId,int jointType,PVector pos,float length){
   // draw the joint orientation  
   PMatrix3D  orientation = new PMatrix3D();
   float confidence = context.getJointOrientationSkeleton(userId,jointType,orientation);
@@ -241,27 +205,23 @@ void drawJointOrientation(int userId,int jointType,PVector pos,float length)
 // -----------------------------------------------------------------
 // SimpleOpenNI user events
 
-void onNewUser(SimpleOpenNI curContext,int userId)
-{
+void onNewUser(SimpleOpenNI curContext,int userId){
   println("onNewUser - userId: " + userId);
   println("\tstart tracking skeleton");
 
   context.startTrackingSkeleton(userId);
 }
 
-void onLostUser(SimpleOpenNI curContext,int userId)
-{
+void onLostUser(SimpleOpenNI curContext,int userId){
   println("onLostUser - userId: " + userId);
 }
 
-void onVisibleUser(SimpleOpenNI curContext,int userId)
-{
+void onVisibleUser(SimpleOpenNI curContext,int userId){
   //println("onVisibleUser - userId: " + userId);
 }
 
 
-void getBodyDirection(int userId,PVector centerPoint,PVector dir)
-{
+void getBodyDirection(int userId,PVector centerPoint,PVector dir){
   PVector jointL = new PVector();
   PVector jointH = new PVector();
   PVector jointR = new PVector();
