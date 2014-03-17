@@ -11,7 +11,7 @@ class OscServer {
   }
 
   public void send(String name, int[] args){
-    OscMessage msg = new OscMessage(name);
+    OscMessage msg = new OscMessage("/" + name);
 
     for (int s: args){
       msg.add(s);

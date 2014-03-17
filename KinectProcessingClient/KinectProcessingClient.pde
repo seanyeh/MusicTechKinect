@@ -52,8 +52,8 @@ void setup(){
   // JointTracker
   joints = new LinkedList<JointTracker>();
   /* joints.add(new JointTracker(SimpleOpenNI.SKEL_HEAD, "head")); */
-  joints.add(new JointTracker(SimpleOpenNI.SKEL_RIGHT_HAND, "/RIGHT_HAND"));
-  joints.add(new JointTracker(SimpleOpenNI.SKEL_LEFT_HAND, "/LEFT_HAND"));
+  joints.add(new JointTracker("RIGHT_HAND", SimpleOpenNI.SKEL_RIGHT_HAND));
+  joints.add(new JointTracker("LEFT_HAND", SimpleOpenNI.SKEL_LEFT_HAND));
 }
 
 
