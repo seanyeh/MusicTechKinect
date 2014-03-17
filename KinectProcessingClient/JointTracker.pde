@@ -42,7 +42,7 @@ class JointTracker {
 
   private int[] getJointValue(SimpleOpenNI context, int joint){
     PVector j = new PVector();
-    context.getJointPositionSkeleton(0, joint, j);
+    context.getJointPositionSkeleton(1, joint, j);
     return new int[]{(int)j.x, (int)j.y, (int)j.z};
   }
 
@@ -55,9 +55,11 @@ class JointTracker {
 
       int[] j1 = getJointValue(context, this.joints[0]);
       int[] j2 = getJointValue(context, this.joints[1]);
+
       return new int[]{j1[0] - j2[0], j1[1] - j2[1], j1[2] - j2[2]};
     }
     else{
+      System.err.println("Not Valid JointTrackerType!");
       return null;
     }
   }
