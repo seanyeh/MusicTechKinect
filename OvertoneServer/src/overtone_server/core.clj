@@ -1,5 +1,6 @@
 (ns overtone-server.core
   (:require [overtone.live :refer :all]
+            [overtone.inst.drum :refer :all]
             ))
 
 
@@ -42,13 +43,23 @@
 
 
 
-(definst buf-inst [buf        RACH
-                   bpf-freq   100
-                   reverb-mix 0
+(definst buf-inst [buf          RACH
+                   bpf-freq     100
+                   reverb-mix   0
+                   ringz-freq   440
                    ]
-  ;; (* 2 (bpf (play-buf 2 buf) bpf-freq))
-  (* 5 (free-verb (bpf (play-buf 2 buf) bpf-freq 0.5) reverb-mix 1 0.2))
-  )
+  (let [out   (* 10 (play-buf 2 buf))
+
+        out   (bpf out bpf-freq 0.5)
+
+        out-ringz   (* 0.2 (ringz (* 0.02 out) ringz-freq 0.5))
+        out   (mix [out out-ringz])
+
+        out   (free-verb out reverb-mix 1 0.2)
+        ]
+
+    (* 1 out)
+    ))
 
 
 
@@ -79,29 +90,24 @@
 
 (defn ctl-reverb [inst-id msg]
   (let [pos (first (:args msg))
-        x   (scale-lin (Math/abs pos) 100 1200 0.8)
-        ]
+        x   (scale-lin (Math/abs pos) 100 1200 0.8)]
     (do
-      (println "reverb:" x)
+      ;; (println "reverb:" x)
       (ctl inst-id :reverb-mix x)
-      )
+      )))
 
-
-    ;; (if (and (>= pos 0 ) (<= pos 1600))
-    ;;   (do 
-    ;;     ;; (println (scale-exp pos 1600 1))
-    ;;     (ctl inst-id :reverb-mix (scale-exp pos 1600 1))
-    ;;     )
-    ;;   )
-    )
-  )
+(defn ctl-ringz [inst-id msg]
+  (let [pos (first (:args msg))
+        x   (scale-exp pos 1600 2000)]
+    (ctl inst-id :ringz-freq x)
+    ))
 
 (defn on-rh-move [inst-id msg]
   (let [args  (:args msg)
         pos   (first args)]
     (if (and (>= pos 0 ) (<= pos 1600))
-      ;; (ctl inst-id :bpf-freq (scale-exp pos 1600 2000))
-      (println (scale-exp pos 1600 5000))
+      (ctl inst-id :bpf-freq (scale-exp pos 1600 2000))
+      ;; (println (scale-exp pos 1600 5000))
       )
     )
   )
@@ -109,11 +115,15 @@
 
 (defn start-server [port inst-id]
   (let [server (osc-server port "osc-clj")]
-    ;; (osc-listen server (fn [msg] (println msg)) :debug)
-
-    ;; (osc-handle server "/RIGHT_HAND"  (partial ctl-bpf inst-id))
-    ;; (osc-handle server "/LEFT_HAND"   (partial ctl-bpf inst-id))
+    (osc-listen server (fn [msg] (println msg)) :debug)
     (osc-handle server "/HAND_SPAN"   (partial ctl-reverb inst-id))
+    ;; (osc-handle server "/TORSO"       (partial ctl-ringz  inst-id))
+
+    (osc-handle server "/RIGHT_HAND"  (partial on-rh-move inst-id))
+
+    (osc-handle server "/RH_GESTURE" (fn [msg] (haziti-clap)))
+
+    ;; (osc-handle server "/LEFT_HAND"   (partial ctl-bpf inst-id))
     ;; (osc-handle server "/head" on-rh-move)
     ;; (osc-handle server "/r_elbow"
 
@@ -124,7 +134,12 @@
 
   (println "Hello, World!")
 
-  (let [inst-id (buf-inst)]
+  (let [inst-id (buf-inst)
+        c (fx-limiter 0)
+        c (fx-limiter 1)
+        ;; c (fx-compressor 0)
+        ;; c (fx-compressor 1)
+        ]
     (start-server 32000 inst-id)
     )
 
