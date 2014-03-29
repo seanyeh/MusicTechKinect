@@ -13,7 +13,6 @@ boolean      autoCalib=true;
 PVector      bodyCenter = new PVector();
 PVector      bodyDir = new PVector();
 PVector      com = new PVector();                                   
-PVector      com2d = new PVector();                                   
 
 
 OscServer oscServer = new OscServer();
@@ -50,9 +49,13 @@ void setup(){
 
   // JointTracker
   joints = new LinkedList<JointTracker>();
-  joints.add(new JointTracker("HAND_SPAN", JointTrackerType.DIFF,
-        SimpleOpenNI.SKEL_RIGHT_HAND, SimpleOpenNI.SKEL_LEFT_HAND));
-  joints.add(new JointTracker("RIGHT_HAND", SimpleOpenNI.SKEL_RIGHT_HAND));
+  /* joints.add(new JointTracker("HAND_SPAN", JointTrackerType.DIFF, */
+  /*       SimpleOpenNI.SKEL_RIGHT_HAND, SimpleOpenNI.SKEL_LEFT_HAND)); */
+  /* joints.add(new JointTracker("RIGHT_HAND", SimpleOpenNI.SKEL_RIGHT_HAND)); */
+  /* joints.add(new JointTracker("TORSO", SimpleOpenNI.SKEL_TORSO)); */
+  
+  joints.add(new JointTracker("LH_GESTURE", JointTrackerType.GESTURE_HAND1,
+        SimpleOpenNI.SKEL_RIGHT_HAND));
   /* joints.add(new JointTracker("LEFT_HAND", SimpleOpenNI.SKEL_LEFT_HAND)); */
 }
 
@@ -65,6 +68,8 @@ void draw(){
 
   background(0,0,0);
   
+  text("goodbye", 400, 400);
+
   /* tint(120,0,0,150); */
   /* image(context.rgbImage(), 0, 0, width, height); */
   /* tint(255,255); */
@@ -107,8 +112,9 @@ void draw(){
 
   for (JointTracker jt: joints){
     jt.update(context);
-    if (jt.isUpdated()){
+    if (jt.isUpdated() || jt.isGestureComplete()){
       oscServer.send(jt.getName(), jt.getPos());
+      jt.setUpdated(false);
     }
   }
 } // END DRAW

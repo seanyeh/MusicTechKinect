@@ -1,4 +1,4 @@
 public enum JointTrackerType {
-    POS, DIFF
+    POS, DIFF, GESTURE_HAND1
 };
 
