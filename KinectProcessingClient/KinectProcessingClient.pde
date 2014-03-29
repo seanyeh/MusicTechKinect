@@ -2,6 +2,7 @@ import SimpleOpenNI.*;
 import processing.video.*;
 
 import java.util.LinkedList;
+import java.util.Iterator;
 
 SimpleOpenNI context;
 float        zoomF =0.5f;
@@ -13,10 +14,12 @@ boolean      autoCalib=true;
 PVector      bodyCenter = new PVector();
 PVector      bodyDir = new PVector();
 PVector      com = new PVector();                                   
-
+int tintX = 0;
 
 OscServer oscServer = new OscServer();
 LinkedList<JointTracker> joints;
+
+LinkedList<Circle> circles;
 
 
 void setup(){
@@ -52,11 +55,15 @@ void setup(){
   /* joints.add(new JointTracker("HAND_SPAN", JointTrackerType.DIFF, */
   /*       SimpleOpenNI.SKEL_RIGHT_HAND, SimpleOpenNI.SKEL_LEFT_HAND)); */
   /* joints.add(new JointTracker("RIGHT_HAND", SimpleOpenNI.SKEL_RIGHT_HAND)); */
-  /* joints.add(new JointTracker("TORSO", SimpleOpenNI.SKEL_TORSO)); */
+
+  joints.add(new JointTracker("TORSO", SimpleOpenNI.SKEL_TORSO));
   
-  joints.add(new JointTracker("LH_GESTURE", JointTrackerType.GESTURE_HAND1,
+  joints.add(new JointTracker("RH_GESTURE", JointTrackerType.GESTURE_HAND1,
         SimpleOpenNI.SKEL_RIGHT_HAND));
   /* joints.add(new JointTracker("LEFT_HAND", SimpleOpenNI.SKEL_LEFT_HAND)); */
+
+  // Circle visuals
+  circles = new LinkedList<Circle>();
 }
 
 
@@ -66,13 +73,13 @@ void draw(){
   // update the cam
   context.update();
 
-  background(0,0,0);
+  background(0, 0, 0);
   
-  text("goodbye", 400, 400);
-
-  /* tint(120,0,0,150); */
-  /* image(context.rgbImage(), 0, 0, width, height); */
-  /* tint(255,255); */
+  colorMode(HSB);
+  tint(tintX, 69, 66, 50);
+  image(context.rgbImage(), 0, 0, width, height);
+  noTint();
+  colorMode(RGB);
 
   // set the scene pos
   translate(width/2, height/2, 0);
@@ -113,8 +120,36 @@ void draw(){
   for (JointTracker jt: joints){
     jt.update(context);
     if (jt.isUpdated() || jt.isGestureComplete()){
-      oscServer.send(jt.getName(), jt.getPos());
+      int[] pos = jt.getPos();
+
+      oscServer.send(jt.getName(), pos);
       jt.setUpdated(false);
+
+      /**
+       * Special events based on certain joints
+       */
+      if (jt.getName() == "RH_GESTURE"){
+        circles.add(new ExpandingCircle(pos[0], pos[1]));
+      }
+      else if (jt.getName() == "TORSO"){
+        circles.add(new Circle(pos[0], pos[1]));
+        
+        // Also, x value of torso determines tint
+        tintX = (pos[0]/3) % 360;
+      }
+
+    }
+  }
+
+
+  // Draw circles
+  Iterator<Circle> iter = circles.iterator();
+  while(iter.hasNext()){
+    Circle c = (Circle)(iter.next());
+    if (c.isDead()){
+      iter.remove();
+    } else{
+      c.draw();
     }
   }
 } // END DRAW
